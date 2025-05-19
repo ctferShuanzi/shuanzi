@@ -195,13 +195,16 @@ def E_DES(m, key):
     L = [[] for i in range(17)]
     R = [[] for i in range(17)]
     L[0], R[0] = m1[:32], m1[32:]
-
+    print(f'L0={L[0]}')
+    print(f'R0={R[0]}')
     # 调用F(R[i-1],round_key[i-1])函数
     for i in range(1,17):
         temp = F(R[i-1],round_key[i-1])
         temp=[XOR(temp[j],L[i-1][j]) for j in range(32)]
         L[i]=R[i-1]
         R[i]=temp
+        print(f'L{i}={L[i]}')
+        print(f'R{i}={R[i]}')
 
     # 将L[16]与R[16]拼接再进行逆初始置换得到密文
     c = R[16]+L[16]
@@ -223,13 +226,13 @@ def E_DES(m, key):
     cipher=''
     for c in result:
         cipher+=str(c)
-    return hex(int(cipher,2))
+    plain_hex = format(int(cipher, 2), '016x')  # 16 个 hex 字符，不足左补 0
+    return '0x' + plain_hex
 
 def D_DES(c, key):
     key0 = pc1(key)
     round_key = left_loop_shift_and_pc2(key0)
-    for i in range(16):
-        round_key[i],round_key[15-i]=round_key[15-i],round_key[i]
+    round_key=round_key[::-1]
     # 处理64bits明文（与密钥处理方式相同）
     # 前提：明文要么为十六进制要么直接为二进制）
     # 如果是十六进制就先变为二进制再变成列表
@@ -255,13 +258,16 @@ def D_DES(c, key):
     L = [[] for i in range(17)]
     R = [[] for i in range(17)]
     L[0], R[0] = c1[:32], c1[32:]
-
+    print(f'L0={L[0]}')
+    print(f'R0={R[0]}')
     # 调用F(R[i-1],round_key[i-1])函数
     for i in range(1,17):
         temp = F(R[i-1],round_key[i-1])
         temp=[XOR(temp[j],L[i-1][j]) for j in range(32)]
         L[i]=R[i-1]
         R[i]=temp
+        print(f'L{i}={L[i]}')
+        print(f'R{i}={R[i]}')
 
     # 将L[16]与R[16]拼接再进行逆初始置换得到密文
     c = R[16]+L[16]
@@ -283,12 +289,15 @@ def D_DES(c, key):
     cipher=''
     for c in result:
         cipher+=str(c)
-    return hex(int(cipher,2))
+    plain_hex = format(int(cipher, 2), '016x')  # 16 个 hex 字符，不足左补 0
+    return '0x' + plain_hex
 
 if __name__=="__main__":
-    m='0x3031323334353637'
-    key='0x3132333435363738'
-    c=E_DES(m,key)
-    print(c)
-    m0=D_DES(c,key)
-    print(m)
+    m1='0x3031323334353637'
+    key1='0x3132333435363738'
+    c1=E_DES(m1,key1)
+    print(f"plaintext:{m1}→ciphertext:{c1}→recover:{D_DES(c1,key1)}")
+    m2='0x0123456789abcdef'
+    key2='0x1f1f1f1f0e0e0e0e'
+    c2=E_DES(m2,key2)
+    print(f"plaintext:{m2}→ciphertext:{c2}→recover:{D_DES(c2, key2)}")
